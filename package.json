@@ -1,0 +1,66 @@
+{
+  "name": "@chittyos/unified-cli",
+  "version": "2.0.0",
+  "description": "Unified ChittyOS CLI - Consolidating all tools with AI intelligence, auto-healing, native system hijacking, and comprehensive hardening",
+  "main": "chitty.js",
+  "bin": {
+    "chitty": "./chitty.js"
+  },
+  "scripts": {
+    "start": "node chitty.js",
+    "test": "node chitty.js --help && node chitty.js status",
+    "install-global": "npm install -g .",
+    "package": "npm pack",
+    "publish-npm": "npm publish --access public",
+    "distribute": "npm run package && npm run publish-npm"
+  },
+  "keywords": [
+    "chittyos",
+    "cli",
+    "unified",
+    "ai",
+    "intelligence",
+    "auto-healing",
+    "native-hijacking",
+    "system-hardening",
+    "evidence-analysis",
+    "finance",
+    "mcp",
+    "trust",
+    "assets",
+    "blockchain",
+    "project-merge",
+    "feature-discovery"
+  ],
+  "author": "ChittyOS Team",
+  "license": "MIT",
+  "type": "commonjs",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/chittyos/unified-cli.git"
+  },
+  "homepage": "https://chittyos.com/cli",
+  "bugs": {
+    "url": "https://github.com/chittyos/unified-cli/issues"
+  },
+  "dependencies": {
+    "commander": "^14.0.1"
+  },
+  "peerDependencies": {
+    "@chittyos/standard-installer": "^1.0.0",
+    "@chittyos/shared": "^1.0.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "files": [
+    "chitty.js",
+    "README.md",
+    "LICENSE",
+    "package.json"
+  ]
+}
