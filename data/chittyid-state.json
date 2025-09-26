@@ -1,0 +1,9 @@
+{
+  "sessions": {},
+  "last_check": "2025-09-20T13:44:48Z",
+  "stats": {
+    "total_requests": 66,
+    "successful": 15,
+    "failed": 23
+  }
+}

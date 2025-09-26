@@ -1,0 +1,1 @@
+/Users/nb/.claude/cross-session-sync/init-sync.sh

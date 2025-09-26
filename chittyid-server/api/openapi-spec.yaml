@@ -1,0 +1,242 @@
+openapi: 3.1.0
+info:
+  title: ChittyID Generation API
+  version: 2.0.0
+  description: |
+    Centralized ChittyID generation service with AI-aware instructions.
+
+    **IMPORTANT FOR AI AGENTS:**
+    - You MUST use this API to generate ChittyIDs
+    - Local generation is FORBIDDEN and will fail
+    - Follow the next_action instructions in error responses
+    - Always include content_hash for binding
+
+  termsOfService: https://id.chitty.cc/terms
+  x-ai-instructions:
+    primary_rule: "Never attempt local ChittyID generation"
+    fallback_rule: "Use fallback service ONLY when main server returns 503"
+    reconciliation: "Always reconcile fallback IDs when main server returns"
+
+servers:
+  - url: https://id.chitty.cc/api/v2
+    description: Main ChittyID server
+  - url: https://fallback.id.chitty.cc/api/v2
+    description: Fallback service (use only when main is unavailable)
+
+paths:
+  /chittyid/mint:
+    post:
+      summary: Generate a new ChittyID
+      description: |
+        Request a new ChittyID from the central server.
+
+        **AI Agent Instructions:**
+        1. Always include content_hash
+        2. Never cache or reuse ChittyIDs
+        3. If this fails with 503, use fallback service
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MintRequest'
+            examples:
+              standard:
+                summary: Standard ID request
+                value:
+                  content_hash: "sha256:abcd1234..."
+                  namespace: "DOC"
+                  type: "I"
+                  metadata:
+                    purpose: "Document identification"
+
+      responses:
+        '200':
+          description: ChittyID successfully generated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChittyIDResponse'
+
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error_code: "INVALID_HASH"
+                human_readable: "Content hash is invalid or missing"
+                ai_instructions:
+                  next_action:
+                    command: "verify_content_hash"
+                    reason: "Hash must be SHA256 format"
+
+        '429':
+          description: Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error_code: "RATE_LIMITED"
+                human_readable: "Too many requests"
+                ai_instructions:
+                  next_action:
+                    command: "wait_and_retry"
+                    wait_seconds: 60
+
+        '503':
+          description: Service temporarily unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error_code: "SERVICE_UNAVAILABLE"
+                human_readable: "Main server is temporarily down"
+                ai_instructions:
+                  next_action:
+                    command: "call_fallback_service"
+                    service_url: "https://fallback.id.chitty.cc"
+                    endpoint: "/api/v2/fallback/request"
+                    important: "Save fallback ID for later reconciliation"
+
+  /chittyid/verify/{id}:
+    get:
+      summary: Verify a ChittyID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^[A-Z0-9]{2}-[A-Z]-[A-Z]{3}-\d{4}-[A-Z]-[A-Z0-9]{2}-[A-Z0-9]-[A-Z0-9]$'
+
+  /chittyid/reconcile:
+    post:
+      summary: Reconcile fallback IDs
+      description: |
+        Submit fallback IDs for replacement with permanent IDs.
+
+        **AI Agent Instructions:**
+        - Call this immediately when main server returns after outage
+        - Include full Merkle tree for offline verification
+        - Never discard fallback IDs until reconciliation succeeds
+
+  /fallback/request:
+    post:
+      summary: Request fallback ChittyID
+      description: |
+        **STRICT RULES:**
+        - Only call when main server returns 503
+        - Must include signed request with timestamp and nonce
+        - Fallback IDs are temporary and MUST be reconciled
+      servers:
+        - url: https://fallback.id.chitty.cc/api/v2
+
+components:
+  schemas:
+    MintRequest:
+      type: object
+      required:
+        - content_hash
+        - namespace
+        - type
+      properties:
+        content_hash:
+          type: string
+          pattern: '^(sha256:)?[a-f0-9]{64}$'
+          description: SHA256 hash of content to bind
+        namespace:
+          type: string
+          enum: [DOC, MNT, CLM, EVD, AST, IDN]
+        type:
+          type: string
+          enum: [I, D, C, E, L, V]
+        metadata:
+          type: object
+          additionalProperties: true
+
+    ChittyIDResponse:
+      type: object
+      properties:
+        chitty_id:
+          type: string
+          example: "02-C-DOC-1234-I-2B-7-A"
+        status_block:
+          $ref: '#/components/schemas/StatusBlock'
+
+    StatusBlock:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [active, fallback, pending_reconciliation]
+        readable_status:
+          type: string
+        creation_time:
+          type: string
+          format: date-time
+        drand_round:
+          type: integer
+        verification_endpoint:
+          type: string
+          format: uri
+        reconciliation_required:
+          type: boolean
+
+    ErrorResponse:
+      type: object
+      required:
+        - error_code
+        - human_readable
+        - ai_instructions
+      properties:
+        error_code:
+          type: string
+        human_readable:
+          type: string
+        ai_instructions:
+          type: object
+          properties:
+            next_action:
+              type: object
+              properties:
+                command:
+                  type: string
+                  enum: [wait_and_retry, call_fallback_service, verify_content_hash, upgrade_client]
+                service_url:
+                  type: string
+                wait_seconds:
+                  type: integer
+                reason:
+                  type: string
+
+  securitySchemes:
+    ApiKey:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: |
+        API key for authentication.
+        **AI Agents:** Never hardcode API keys. Use environment variables.
+
+    SignedRequest:
+      type: http
+      scheme: bearer
+      bearerFormat: HMAC
+      description: |
+        HMAC signature for replay protection on fallback service.
+        Include timestamp and nonce in request body.
+
+security:
+  - ApiKey: []
+
+x-ai-behavioral-rules:
+  - "If status_block.reconciliation_required is true, you MUST reconcile"
+  - "Never generate IDs locally even if you think you know the format"
+  - "Always check status_block.status before using an ID"
+  - "Respect rate limits and wait as instructed"
+  - "Log all fallback ID usage for audit purposes"

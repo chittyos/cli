@@ -1,0 +1,60 @@
+{
+  "name": "@chittyos/github-app",
+  "version": "1.0.0",
+  "description": "ChittyOS GitHub App - Universal connector for GitHub, Replit, and more",
+  "type": "module",
+  "main": "repl-cli.js",
+  "bin": {
+    "chitty": "./chitty-cli.js",
+    "chittyos": "./chitty-cli.js",
+    "repl-cli": "./repl-cli.js"
+  },
+  "scripts": {
+    "start": "node repl-cli.js",
+    "lint": "eslint .",
+    "format": "prettier --write ."
+  },
+  "keywords": [
+    "replit",
+    "cli",
+    "repl",
+    "development",
+    "cloud",
+    "ide",
+    "chittyapps",
+    "chitty"
+  ],
+  "author": "ChittyApps",
+  "license": "MIT",
+  "homepage": "https://github.com/chittyapps/replit-cli#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chittyapps/replit-cli.git"
+  },
+  "bugs": {
+    "url": "https://github.com/chittyapps/replit-cli/issues"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "dependencies": {
+    "@chittyos/cli": "^2.1.2",
+    "axios": "^1.6.2",
+    "chalk": "^5.3.0",
+    "commander": "^11.1.0",
+    "dotenv": "^16.3.1",
+    "fs-extra": "^11.2.0",
+    "inquirer": "^9.2.12",
+    "ora": "^7.0.1",
+    "simple-git": "^3.20.0",
+    "ws": "^8.15.1"
+  },
+  "devDependencies": {
+    "eslint": "^8.56.0",
+    "prettier": "^3.1.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

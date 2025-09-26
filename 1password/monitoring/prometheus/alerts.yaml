@@ -1,0 +1,119 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-alerts
+  namespace: monitoring
+data:
+  alerts.yaml: |
+    groups:
+    - name: chittychat-alerts
+      interval: 30s
+      rules:
+      # Service availability
+      - alert: ChittyChatDown
+        expr: up{job="chittychat"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          service: chittychat
+        annotations:
+          summary: "ChittyChat service is down"
+          description: "ChittyChat has been down for more than 2 minutes. Instance: {{ $labels.instance }}"
+
+      # High CPU usage
+      - alert: ChittyChatHighCPU
+        expr: rate(container_cpu_usage_seconds_total{pod=~"chittychat-.*"}[5m]) * 100 > 80
+        for: 5m
+        labels:
+          severity: warning
+          service: chittychat
+        annotations:
+          summary: "High CPU usage detected"
+          description: "ChittyChat pod {{ $labels.pod }} CPU usage is above 80% (current: {{ $value }}%)"
+
+      # High memory usage
+      - alert: ChittyChatHighMemory
+        expr: container_memory_usage_bytes{pod=~"chittychat-.*"} / container_spec_memory_limit_bytes{pod=~"chittychat-.*"} * 100 > 90
+        for: 5m
+        labels:
+          severity: warning
+          service: chittychat
+        annotations:
+          summary: "High memory usage detected"
+          description: "ChittyChat pod {{ $labels.pod }} memory usage is above 90% (current: {{ $value }}%)"
+
+      # Pod restart
+      - alert: ChittyChatPodRestart
+        expr: increase(kube_pod_container_status_restarts_total{pod=~"chittychat-.*"}[1h]) > 5
+        labels:
+          severity: warning
+          service: chittychat
+        annotations:
+          summary: "Pod restarting frequently"
+          description: "ChittyChat pod {{ $labels.pod }} has restarted {{ $value }} times in the last hour"
+
+      # High error rate
+      - alert: ChittyChatHighErrorRate
+        expr: sum(rate(http_requests_total{job="chittychat",status=~"5.."}[5m])) / sum(rate(http_requests_total{job="chittychat"}[5m])) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+          service: chittychat
+        annotations:
+          summary: "High error rate detected"
+          description: "ChittyChat error rate is above 5% (current: {{ $value | humanizePercentage }})"
+
+      # High latency
+      - alert: ChittyChatHighLatency
+        expr: histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{job="chittychat"}[5m])) by (le)) > 1
+        for: 5m
+        labels:
+          severity: warning
+          service: chittychat
+        annotations:
+          summary: "High latency detected"
+          description: "ChittyChat 95th percentile latency is above 1s (current: {{ $value }}s)"
+
+      # Database connection failure
+      - alert: ChittyChatDatabaseDown
+        expr: chittychat_database_status == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: chittychat
+        annotations:
+          summary: "Database connection failed"
+          description: "ChittyChat cannot connect to the database"
+
+      # Redis connection failure
+      - alert: ChittyChatRedisDown
+        expr: chittychat_redis_status == 0
+        for: 1m
+        labels:
+          severity: warning
+          service: chittychat
+        annotations:
+          summary: "Redis connection failed"
+          description: "ChittyChat cannot connect to Redis"
+
+      # Disk space
+      - alert: ChittyChatLowDiskSpace
+        expr: (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"}) * 100 < 10
+        for: 5m
+        labels:
+          severity: critical
+          service: chittychat
+        annotations:
+          summary: "Low disk space"
+          description: "Node {{ $labels.node }} has less than 10% disk space available"
+
+      # SSL certificate expiry
+      - alert: ChittyChatCertificateExpiry
+        expr: probe_ssl_earliest_cert_expiry{job="blackbox"} - time() < 86400 * 7
+        for: 1h
+        labels:
+          severity: warning
+          service: chittychat
+        annotations:
+          summary: "SSL certificate expiring soon"
+          description: "SSL certificate for {{ $labels.instance }} expires in {{ $value | humanizeDuration }}"

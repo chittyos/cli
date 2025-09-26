@@ -1,0 +1,37 @@
+cloudflare:
+  api_key_ref: "op://Claude-Code Tools/Cloudflare API KEYS/global_api_key"
+  email_ref: "op://Claude-Code Tools/Cloudflare API KEYS/email"
+  account_id_ref: "op://Claude-Code Tools/Cloudflare API KEYS/account id"
+
+registry:
+  url: "https://registry.chitty.cc"
+  api_key: "${REGISTRY_API_KEY}"
+
+sync:
+  interval: 3600  # seconds (1 hour)
+  on_startup: true
+  resource_types:
+    - domains
+    - workers
+    - pages
+    - r2_buckets
+    - kv_namespaces
+    - durable_objects
+
+webhook:
+  enabled: true
+  port: 8080
+  secret: "${CLOUDFLARE_WEBHOOK_SECRET}"
+  host: "0.0.0.0"
+
+logging:
+  level: "INFO"
+  file: "sync.log"
+  max_size: "10MB"
+  backup_count: 5
+
+notifications:
+  enabled: false
+  slack_webhook: "${SLACK_WEBHOOK_URL}"
+  on_error: true
+  on_success: false

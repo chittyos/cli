@@ -1,0 +1,113 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: chittychat-backup
+  namespace: chittychat
+spec:
+  # Run backup daily at 2 AM UTC
+  schedule: "0 2 * * *"
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+          - name: backup
+            image: chittychat-backup:latest
+            imagePullPolicy: Always
+            env:
+            - name: BACKUP_DIR
+              value: "/backups"
+            - name: S3_BACKUP_BUCKET
+              value: "chittychat-backups"
+            - name: RETENTION_DAYS
+              value: "30"
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: chittychat-secrets
+                  key: database-url
+            - name: S3_BUCKET
+              value: "chittychat-uploads"
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: chittychat-secrets
+                  key: aws-access-key-id
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: chittychat-secrets
+                  key: aws-secret-access-key
+            - name: SLACK_WEBHOOK
+              valueFrom:
+                secretKeyRef:
+                  name: chittychat-secrets
+                  key: slack-webhook
+                  optional: true
+            - name: OP_SERVICE_ACCOUNT_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: chittychat-secrets
+                  key: op-service-account-token
+                  optional: true
+            command:
+            - /bin/bash
+            - -c
+            - |
+              # Install required tools
+              apt-get update && apt-get install -y postgresql-client redis-tools
+              
+              # Copy backup script
+              cp /scripts/backup.sh /tmp/backup.sh
+              chmod +x /tmp/backup.sh
+              
+              # Run backup
+              /tmp/backup.sh
+            volumeMounts:
+            - name: backup-scripts
+              mountPath: /scripts
+            - name: backup-storage
+              mountPath: /backups
+            resources:
+              requests:
+                memory: "256Mi"
+                cpu: "100m"
+              limits:
+                memory: "512Mi"
+                cpu: "500m"
+          volumes:
+          - name: backup-scripts
+            configMap:
+              name: backup-scripts
+              defaultMode: 0755
+          - name: backup-storage
+            persistentVolumeClaim:
+              claimName: backup-pvc
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: backup-pvc
+  namespace: chittychat
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Gi
+  storageClassName: gp2
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backup-scripts
+  namespace: chittychat
+data:
+  backup.sh: |
+    #!/bin/bash
+    # Backup script content from scripts/backup.sh
+    # This would be populated from the actual backup.sh file

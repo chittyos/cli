@@ -1,0 +1,14 @@
+[Unit]
+Description=Cloudflare Registry Periodic Sync
+After=network.target
+
+[Service]
+Type=oneshot
+User=www-data
+Group=www-data
+WorkingDirectory=/opt/cloudflare-sync/tools
+Environment="PATH=/usr/local/bin:/usr/bin:/bin"
+Environment="PYTHONPATH=/opt/cloudflare-sync/tools"
+ExecStart=/usr/bin/python3 /opt/cloudflare-sync/tools/sync_all.py
+StandardOutput=append:/var/log/cloudflare-sync/periodic.log
+StandardError=append:/var/log/cloudflare-sync/periodic-error.log

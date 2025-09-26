@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  webhook:
+    build: .
+    container_name: cloudflare-sync-webhook
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      - REGISTRY_API_KEY=${REGISTRY_API_KEY}
+      - CLOUDFLARE_WEBHOOK_SECRET=${CLOUDFLARE_WEBHOOK_SECRET}
+      - WEBHOOK_PORT=8080
+    volumes:
+      - ./logs:/var/log/cloudflare-sync
+      - ./data:/app/data
+      - ~/.op:/home/app/.op:ro
+    command: python webhook_listener.py
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  sync-cron:
+    build: .
+    container_name: cloudflare-sync-cron
+    restart: always
+    environment:
+      - REGISTRY_API_KEY=${REGISTRY_API_KEY}
+    volumes:
+      - ./logs:/var/log/cloudflare-sync
+      - ./data:/app/data
+      - ~/.op:/home/app/.op:ro
+    command: >
+      sh -c "
+      while true; do
+        python sync_all.py
+        sleep 3600
+      done
+      "
+
+networks:
+  default:
+    name: cloudflare-sync-network

@@ -1,0 +1,14 @@
+{
+  "name": "chittyid-client",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "ChittyID Client - Server-only request system with NO local generation",
+  "main": "client.js",
+  "scripts": {
+    "test": "node test-client.js"
+  },
+  "dependencies": {},
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}

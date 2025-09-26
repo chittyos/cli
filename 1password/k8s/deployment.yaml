@@ -1,0 +1,91 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chittychat
+  namespace: chittychat
+  labels:
+    app: chittychat
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: chittychat
+  template:
+    metadata:
+      labels:
+        app: chittychat
+    spec:
+      containers:
+      - name: chittychat
+        image: chittychat:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 3000
+          name: http
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: PORT
+          value: "3000"
+        - name: OPENAI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: chittychat-secrets
+              key: openai-api-key
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: chittychat-secrets
+              key: database-url
+        - name: OAUTH_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: chittychat-secrets
+              key: oauth-client-id
+        - name: OAUTH_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: chittychat-secrets
+              key: oauth-client-secret
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: chittychat-secrets
+              key: jwt-secret
+        - name: SUPABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: chittychat-secrets
+              key: supabase-url
+        - name: SUPABASE_ANON_KEY
+          valueFrom:
+            secretKeyRef:
+              name: chittychat-secrets
+              key: supabase-anon-key
+        - name: S3_BUCKET
+          value: "chittychat-uploads"
+        - name: AWS_REGION
+          value: "us-west-2"
+        - name: REDIS_URL
+          value: "redis://redis:6379"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 3000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 3000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+      nodeSelector:
+        kubernetes.io/os: linux

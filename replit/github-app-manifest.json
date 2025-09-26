@@ -1,0 +1,50 @@
+{
+  "name": "ChittyOS",
+  "url": "https://chitty.cc",
+  "hook_attributes": {
+    "url": "https://unified.chitty.cc/github/webhooks"
+  },
+  "redirect_url": "https://chitty.cc/github/callback",
+  "callback_urls": [
+    "https://chitty.cc/github/callback",
+    "https://unified.chitty.cc/github/callback"
+  ],
+  "setup_url": "https://chitty.cc/github/setup",
+  "description": "ChittyOS Universal Platform Connector - Enterprise-grade identity management, document processing, and cross-platform synchronization with ChittyID and dual immutability.",
+  "public": true,
+  "default_events": [
+    "push",
+    "pull_request",
+    "issues",
+    "issue_comment",
+    "repository",
+    "create",
+    "delete",
+    "release",
+    "workflow_run"
+  ],
+  "default_permissions": {
+    "actions": "write",
+    "administration": "read",
+    "checks": "write",
+    "contents": "write",
+    "deployments": "write",
+    "issues": "write",
+    "metadata": "read",
+    "packages": "write",
+    "pages": "write",
+    "pull_requests": "write",
+    "repository_hooks": "write",
+    "repository_projects": "write",
+    "security_events": "write",
+    "statuses": "write",
+    "vulnerability_alerts": "read",
+    "workflows": "write",
+    "members": "read",
+    "organization_administration": "read",
+    "organization_hooks": "write",
+    "organization_packages": "write",
+    "organization_projects": "write",
+    "team_discussions": "write"
+  }
+}
