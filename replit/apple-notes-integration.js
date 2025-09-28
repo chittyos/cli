@@ -217,11 +217,11 @@ export class AppleNotesIntegration {
     const fileName = path.basename(mediaPath);
     const fileExtension = path.extname(mediaPath).toLowerCase();
 
-    // Generate ChittyID for the media
-    const chittyId = this.chittyIdCore.generateChittyID({
-      namespace: "DOC",
-      type: "E", // Evidence
-    });
+    // REMOVED: Local ChittyID generation not allowed
+    throw new Error(
+      "LOCAL GENERATION REMOVED: ChittyID generation must use server API. " +
+        "This method has been removed for security compliance.",
+    );
 
     // Calculate file hash for integrity
     const fileBuffer = fs.readFileSync(mediaPath);
@@ -453,11 +453,11 @@ export class AppleNotesIntegration {
    * Process and index a complete note with ChittyID
    */
   async processNote(noteContent, options = {}) {
-    // Generate ChittyID for the note
-    const chittyId = this.chittyIdCore.generateChittyID({
-      namespace: "NOT",
-      type: "D", // Document
-    });
+    // REMOVED: Local ChittyID generation not allowed
+    throw new Error(
+      "LOCAL GENERATION REMOVED: ChittyID generation must use server API. " +
+        "This method has been removed for security compliance.",
+    );
 
     const noteRecord = {
       chittyId: chittyId.identifier,

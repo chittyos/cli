@@ -1,7 +1,14 @@
 #!/usr/bin/env node
 
-// ChittyOS Fallback System with Error-Coded IDs
-// Generates temporary IDs that get reconciled upon reconnection
+/**
+ * ChittyOS Fallback System - STRICT SERVER-ONLY VERSION
+ *
+ * SECURITY UPDATE: This file has been updated to enforce server-only generation.
+ * Previous versions contained local generation which violated security policy.
+ *
+ * ALL fallback operations must be performed by authorized servers only.
+ * NO LOCAL GENERATION - NO EXCEPTIONS
+ */
 
 import { ChittyIDCore } from "./chittyid-core.js";
 
@@ -20,45 +27,16 @@ export class ChittyFallbackSystem {
   }
 
   /**
-   * Generate fallback ChittyID with error code
-   * Format: VV-E-XXX-SSSS-T-YM-C-X where E = Error domain
+   * REMOVED METHOD - NO LOCAL GENERATION
+   * Fallback IDs must be requested from pre-authorized server only
    */
   generateFallbackID(options = {}) {
-    const errorCode = options.errorCode || this.errorCodes.DISCONNECTED;
-
-    // Generate ID with Error domain 'E' to indicate fallback state
-    const fallbackId = this.chittyIdCore.generateChittyID({
-      namespace: errorCode, // Use error code as namespace
-      type: options.type || "F", // F for Fallback
-      domain: "E", // E for Error/Fallback domain (not C for ChittyCorp)
-    });
-
-    // Store for later reconciliation
-    const fallbackRecord = {
-      fallbackId: fallbackId.identifier,
-      originalRequest: options,
-      createdAt: new Date().toISOString(),
-      status: "PENDING_RECONCILIATION",
-      errorCode,
-      willExpireAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24 hours
-      reconciliationData: {
-        targetNamespace: options.targetNamespace || "MNT",
-        targetType: options.targetType || "M",
-        subject: options.subject,
-        metadata: options.metadata || {},
-      },
-    };
-
-    this.pendingReconciliation.set(fallbackId.identifier, fallbackRecord);
-
-    return {
-      ...fallbackId,
-      isFallback: true,
-      errorCode,
-      reconciliationPending: true,
-      message: `Temporary ID generated offline. Will be reconciled when connection restored.`,
-      fallbackRecord,
-    };
+    throw new Error(
+      "LOCAL GENERATION REMOVED: This method has been removed for security. " +
+        "All fallback IDs must be requested from the pre-authorized fallback server at " +
+        "https://fallback.id.chitty.cc. " +
+        "Use requestServerFallbackID() which makes server requests only.",
+    );
   }
 
   /**
@@ -178,12 +156,11 @@ export class ChittyFallbackSystem {
       // const response = await connectionApi.post('/reconcile', requestData);
       // return response.data.realId;
 
-      // Simulation for development
-      const realId = this.chittyIdCore.generateChittyID({
-        namespace: fallbackRecord.reconciliationData.targetNamespace,
-        type: fallbackRecord.reconciliationData.targetType,
-        domain: "C", // Real ChittyCorp domain
-      });
+      // Server request for real ID - NO LOCAL GENERATION
+      throw new Error(
+        "LOCAL GENERATION REMOVED: Reconciliation must use server API. " +
+          "This simulation has been removed for security compliance.",
+      );
 
       return realId;
     } catch (error) {
@@ -240,12 +217,11 @@ export class ChittyFallbackSystem {
     try {
       // Try to connect to ChittyCorp
       if (await this.checkConnection()) {
-        // Connected - generate real ID
-        const realId = this.chittyIdCore.generateChittyID({
-          namespace: "MNT",
-          type: "S", // Soft mint
-          domain: "C",
-        });
+        // Connected - request real ID from server
+        throw new Error(
+          "LOCAL GENERATION REMOVED: All ChittyID generation must use server API. " +
+            "This method has been removed for security compliance.",
+        );
 
         return {
           ...realId,

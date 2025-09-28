@@ -32,16 +32,25 @@ const SERVICES = {
     validation: "chittyid-validation",
     evidence: "evidence-processing",
     monitoring: "real-time-monitoring",
+    litigation: "litigation-workflow",
   },
   containers: {
     evidenceProcessor: "evidence-processor:latest",
     aiAnalyzer: "ai-analyzer:gpu",
     ocrProcessor: "ocr-processor:v2",
+    litigationPipeline: "litigation-pipeline:v1",
   },
   regions: {
     us: "us-central1",
     eu: "eu-west1",
     apac: "asia-southeast1",
+  },
+  endpoints: {
+    chittyId: "https://id.chitty.cc/v1",
+    chittySchema: "https://schema.chitty.cc/api/v1",
+    chittyVerify: "https://verify.chitty.cc/api/v1",
+    chittyCheck: "https://check.chitty.cc/api/v1",
+    chittyRegistry: "https://registry.chitty.cc/api/v1",
   },
 };
 
@@ -500,6 +509,192 @@ program
 
 // Pipeline management commands
 program.command("pipeline").description("Pipeline management commands");
+
+// Litigation workflow commands - §36 compliant
+program
+  .command("litigation")
+  .description("Litigation workflow management (§36 compliant)");
+
+program
+  .command("litigation:ingest")
+  .description("Ingest evidence following §36 architecture")
+  .argument("<file>", "Evidence file path")
+  .option("-p, --places <places>", "Comma-separated places")
+  .option("-r, --properties <properties>", "Comma-separated properties")
+  .option("--case-id <caseId>", "Associated case ChittyID")
+  .action(async (file, options) => {
+    const progress = new ProgressTracker();
+
+    try {
+      progress.start("Starting §36 evidence ingestion...");
+
+      // Dynamic import of the evidence pipeline
+      const { EvidenceIngestionPipeline } = await import(
+        "./evidence-ingestion.js"
+      );
+      const pipeline = new EvidenceIngestionPipeline();
+
+      const meta = {
+        places: options.places ? options.places.split(",") : [],
+        properties: options.properties ? options.properties.split(",") : [],
+        caseId: options.caseId,
+      };
+
+      const result = await pipeline.ingestEvidence(file, meta);
+
+      progress.succeed("Evidence ingested successfully");
+
+      const table = new Table({
+        head: ["Property", "Value"],
+        colWidths: [20, 50],
+      });
+
+      table.push(
+        ["ChittyID", result.chitty_id],
+        ["Verify Status", result.verify.status || "unknown"],
+        ["Compliance Score", result.compliance.score || "unknown"],
+        ["Trust Score", result.verify.trust_score || "unknown"],
+      );
+
+      console.log(table.toString());
+    } catch (error) {
+      progress.fail(`Evidence ingestion failed: ${error.message}`);
+      process.exit(1);
+    }
+  });
+
+program
+  .command("litigation:validate")
+  .description("Validate evidence chain integrity")
+  .argument("<chittyId>", "Evidence ChittyID")
+  .action(async (chittyId) => {
+    const progress = new ProgressTracker();
+
+    try {
+      if (!validateChittyID(chittyId)) {
+        logger.error("Invalid ChittyID format");
+        process.exit(1);
+      }
+
+      progress.start("Validating evidence chain...");
+
+      // Call ChittyVerify service
+      const response = await fetch(
+        `${SERVICES.endpoints.chittyVerify}/evidence/verify`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${process.env.CHITTY_VERIFY_TOKEN}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ chitty_id: chittyId }),
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error(`Verification failed: ${response.status}`);
+      }
+
+      const result = await response.json();
+      progress.succeed("Evidence validation complete");
+
+      const table = new Table({
+        head: ["Check", "Status", "Score"],
+        colWidths: [25, 15, 10],
+      });
+
+      table.push(
+        [
+          "Integrity",
+          result.integrity || "unknown",
+          result.integrity_score || "N/A",
+        ],
+        [
+          "Custody Chain",
+          result.custody || "unknown",
+          result.custody_score || "N/A",
+        ],
+        [
+          "Authenticity",
+          result.authenticity || "unknown",
+          result.auth_score || "N/A",
+        ],
+        [
+          "Overall Trust",
+          result.status || "unknown",
+          result.trust_score || "N/A",
+        ],
+      );
+
+      console.log(table.toString());
+    } catch (error) {
+      progress.fail(`Validation failed: ${error.message}`);
+      process.exit(1);
+    }
+  });
+
+program
+  .command("litigation:case")
+  .description("Create new legal case")
+  .option("-t, --title <title>", "Case title")
+  .option("-d, --description <description>", "Case description")
+  .option("-j, --jurisdiction <jurisdiction>", "Legal jurisdiction")
+  .option("-c, --court <court>", "Court identifier")
+  .action(async (options) => {
+    const progress = new ProgressTracker();
+
+    try {
+      progress.start("Creating legal case...");
+
+      // Request ChittyID for the case
+      const idResponse = await fetch(`${SERVICES.endpoints.chittyId}/mint`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${process.env.CHITTY_ID_TOKEN}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ domain: "legal", subtype: "case" }),
+      });
+
+      if (!idResponse.ok) {
+        throw new Error(`ChittyID service error: ${await idResponse.text()}`);
+      }
+
+      const { chitty_id } = await idResponse.json();
+
+      // Store case via ChittySchema
+      const caseData = {
+        chitty_id,
+        title: options.title || "Untitled Case",
+        description: options.description || "",
+        jurisdiction: options.jurisdiction || "",
+        court: options.court || "",
+        created_at: new Date().toISOString(),
+        status: "active",
+      };
+
+      const storeResponse = await fetch(
+        `${SERVICES.endpoints.chittySchema}/store/case`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${process.env.CHITTY_ID_TOKEN}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(caseData),
+        },
+      );
+
+      progress.succeed("Legal case created successfully");
+
+      logger.info(`Case ChittyID: ${chitty_id}`);
+      logger.info(`Title: ${caseData.title}`);
+      logger.info(`Jurisdiction: ${caseData.jurisdiction}`);
+    } catch (error) {
+      progress.fail(`Case creation failed: ${error.message}`);
+      process.exit(1);
+    }
+  });
 
 program
   .command("pipeline:trigger")
