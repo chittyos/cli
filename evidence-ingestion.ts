@@ -19,6 +19,21 @@ type EvidenceMeta = {
   properties?: string[];
 };
 
+type AIAnalysisSession = {
+  session_id: string;
+  chitty_id: string;
+  case_id?: string;
+  model_provider: string;
+  model_version: string;
+  session_type: string;
+  input_hash: string;
+  output_hash?: string;
+  token_count_input?: number;
+  token_count_output?: number;
+  cost_usd?: number;
+  metadata?: object;
+};
+
 type ServiceConfig = {
   REGISTRY_URL: string;
   CHITTY_ID_TOKEN: string;
@@ -27,6 +42,7 @@ type ServiceConfig = {
   CHITTY_REGISTRY_TOKEN: string;
   PGPASSWORD: string;
   ARIAS_DB_URL: string;
+  DATABASE_URL: string;
 };
 
 class EvidenceIngestionPipeline {
@@ -41,6 +57,8 @@ class EvidenceIngestionPipeline {
       CHITTY_REGISTRY_TOKEN: process.env.CHITTY_REGISTRY_TOKEN || "",
       PGPASSWORD: process.env.PGPASSWORD || "",
       ARIAS_DB_URL: process.env.ARIAS_DB_URL || "",
+      DATABASE_URL:
+        process.env.DATABASE_URL || process.env.NEON_DATABASE_URL || "",
     };
 
     this.validateConfig();
@@ -279,6 +297,128 @@ class EvidenceIngestionPipeline {
       console.error(`❌ Evidence ingestion failed: ${error.message}`);
       throw error;
     }
+  }
+
+  /**
+   * Create AI analysis session for tracking Claude/GPT analysis
+   */
+  async createAIAnalysisSession(
+    caseId: string | undefined,
+    modelProvider: string,
+    modelVersion: string,
+    sessionType: string,
+    inputContent: string,
+    metadata: object = {},
+  ): Promise<string> {
+    console.log(`🤖 Creating AI analysis session...`);
+
+    // Generate ChittyID for session
+    const sessionChittyId = await this.requestChittyId(
+      "ai-analysis",
+      sessionType,
+    );
+
+    // Generate session ID and input hash
+    const sessionId = `session-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
+    const inputHash = crypto
+      .createHash("sha256")
+      .update(inputContent)
+      .digest("hex");
+
+    const sessionData: AIAnalysisSession = {
+      session_id: sessionId,
+      chitty_id: sessionChittyId,
+      case_id: caseId,
+      model_provider: modelProvider,
+      model_version: modelVersion,
+      session_type: sessionType,
+      input_hash: inputHash,
+      metadata,
+    };
+
+    if (this.config.DATABASE_URL) {
+      try {
+        // In a real implementation, this would use a proper database connection
+        console.log(
+          `📊 AI Session: ${sessionId} (${modelProvider}/${modelVersion})`,
+        );
+        console.log(`   ChittyID: ${sessionChittyId}`);
+        console.log(`   Input Hash: ${inputHash.substring(0, 16)}...`);
+      } catch (error) {
+        console.warn(`⚠️  Database logging failed: ${error.message}`);
+      }
+    }
+
+    return sessionId;
+  }
+
+  /**
+   * Complete AI analysis session with results
+   */
+  async completeAIAnalysisSession(
+    sessionId: string,
+    outputContent: string,
+    analysisResults: any[] = [],
+    tokenCounts: { input?: number; output?: number } = {},
+    costUsd: number = 0,
+  ): Promise<void> {
+    console.log(`✅ Completing AI analysis session: ${sessionId}`);
+
+    const outputHash = crypto
+      .createHash("sha256")
+      .update(outputContent)
+      .digest("hex");
+
+    if (this.config.DATABASE_URL) {
+      try {
+        console.log(`📊 Session Results:`);
+        console.log(`   Output Hash: ${outputHash.substring(0, 16)}...`);
+        console.log(`   Analysis Count: ${analysisResults.length}`);
+        console.log(
+          `   Tokens: ${tokenCounts.input || 0} → ${tokenCounts.output || 0}`,
+        );
+        console.log(`   Cost: $${costUsd.toFixed(4)}`);
+      } catch (error) {
+        console.warn(`⚠️  Database update failed: ${error.message}`);
+      }
+    }
+  }
+
+  /**
+   * Create evidence chain entry for AI analysis
+   */
+  async createEvidenceChainEntry(
+    caseId: string,
+    evidenceType: string,
+    evidenceData: any,
+    sourceSessionId?: string,
+    parentChainId?: string,
+  ): Promise<string> {
+    console.log(`🔗 Creating evidence chain entry...`);
+
+    // Generate ChittyID for evidence
+    const evidenceChittyId = await this.requestChittyId(
+      "evidence-chain",
+      evidenceType,
+    );
+
+    // Generate evidence hash
+    const evidenceHash = crypto
+      .createHash("sha256")
+      .update(JSON.stringify(evidenceData))
+      .digest("hex");
+
+    if (this.config.DATABASE_URL) {
+      try {
+        console.log(`🔗 Evidence Chain: ${evidenceChittyId}`);
+        console.log(`   Type: ${evidenceType}`);
+        console.log(`   Hash: ${evidenceHash.substring(0, 16)}...`);
+      } catch (error) {
+        console.warn(`⚠️  Evidence chain creation failed: ${error.message}`);
+      }
+    }
+
+    return evidenceChittyId;
   }
 }
 
