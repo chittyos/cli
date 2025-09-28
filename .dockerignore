@@ -1,0 +1,71 @@
+# Git
+.git
+.gitignore
+.github
+
+# Node
+node_modules
+npm-debug.log
+yarn-error.log
+*.log
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Development
+.vscode
+.idea
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Testing
+coverage
+.nyc_output
+test-results
+*.test.js
+*.spec.js
+__tests__
+
+# Build artifacts
+dist
+build
+*.tar.gz
+
+# Documentation
+*.md
+docs
+LICENSE
+
+# CI/CD
+.github/workflows
+.gitlab-ci.yml
+.travis.yml
+jenkins
+
+# Docker
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Temporary files
+tmp
+temp
+*.tmp
+*.bak
+
+# MacOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Python
+__pycache__
+*.py[cod]
+*$py.class
+.Python
+venv
+env

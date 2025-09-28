@@ -222,17 +222,7 @@ function validateChittyID(chittyId) {
   return pattern.test(chittyId);
 }
 
-function generateChittyID(entityType = "D") {
-  const date = new Date();
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  const sequence = Math.floor(Math.random() * 1000000)
-    .toString()
-    .padStart(6, "0");
-
-  return `01-1-USA-${year}-${entityType}-${year}${month}-1-${sequence.slice(-2)}`;
-}
+// §36 Compliance: ChittyID generation must use service - local generation removed
 
 // Progress tracking
 class ProgressTracker {
@@ -1020,21 +1010,49 @@ program
 // Utility commands
 program
   .command("generate-id")
-  .description("Generate a new ChittyID")
-  .option("-t, --type <type>", "Entity type (P, L, O, E, A)", "D")
-  .action((options) => {
-    const chittyId = generateChittyID(options.type);
-    logger.success(`Generated ChittyID: ${chittyId}`);
+  .description("Generate a new ChittyID via service (§36 compliant)")
+  .option("-d, --domain <domain>", "Domain type", "general")
+  .option("-s, --subtype <subtype>", "Subtype", "document")
+  .action(async (options) => {
+    const progress = new ProgressTracker();
 
-    // Copy to clipboard if available
     try {
-      const { execSync } = require("child_process");
-      if (process.platform === "darwin") {
-        execSync(`echo "${chittyId}" | pbcopy`);
-        logger.info("ChittyID copied to clipboard");
+      progress.start("Requesting ChittyID from service...");
+
+      const response = await fetch(`${SERVICES.endpoints.chittyId}/mint`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${process.env.CHITTY_ID_TOKEN}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          domain: options.domain,
+          subtype: options.subtype,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`ChittyID service error: ${await response.text()}`);
       }
-    } catch {
-      // Ignore clipboard errors
+
+      const { chitty_id } = await response.json();
+      progress.succeed("ChittyID generated successfully");
+
+      logger.success(`Generated ChittyID: ${chitty_id}`);
+
+      // Copy to clipboard if available
+      try {
+        const { execSync } = require("child_process");
+        if (process.platform === "darwin") {
+          execSync(`echo "${chitty_id}" | pbcopy`);
+          logger.info("ChittyID copied to clipboard");
+        }
+      } catch {
+        // Ignore clipboard errors
+      }
+    } catch (error) {
+      progress.fail(`ChittyID generation failed: ${error.message}`);
+      process.exit(1);
     }
   });
 

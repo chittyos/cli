@@ -162,13 +162,20 @@ class EvidenceIngestionPipeline {
     };
 
     try {
-      // 4) RESOLVE: Get service endpoints dynamically
+      // 4) RESOLVE: Get service endpoints dynamically (§36 - no fallbacks)
       console.log(`🔍 Resolving ChittyOS services...`);
-      const [schemaBase, verifyBase, checkBase] = await Promise.all([
-        this.resolve("chittyschema").catch(() => "https://schema.chitty.cc"),
-        this.resolve("chittyverify").catch(() => "https://verify.chitty.cc"),
-        this.resolve("chittycheck").catch(() => "https://check.chitty.cc"),
-      ]);
+      let schemaBase, verifyBase, checkBase;
+      try {
+        [schemaBase, verifyBase, checkBase] = await Promise.all([
+          this.resolve("chittyschema"),
+          this.resolve("chittyverify"),
+          this.resolve("chittycheck"),
+        ]);
+      } catch (error) {
+        throw new Error(
+          `§36 Violation: Service resolution failed - ChittyOS services required: ${error.message}`,
+        );
+      }
 
       // 5) VALIDATE: Schema validation
       console.log(`📋 Validating against ChittySchema...`);
@@ -208,13 +215,12 @@ class EvidenceIngestionPipeline {
         },
       );
 
-      const verify = verifyResponse.ok
-        ? await verifyResponse.json()
-        : {
-            status: "offline",
-            trust_score: 0.5,
-            message: "ChittyVerify service unavailable",
-          };
+      if (!verifyResponse.ok) {
+        throw new Error(
+          `§36 Violation: ChittyVerify service required - ${await verifyResponse.text()}`,
+        );
+      }
+      const verify = await verifyResponse.json();
 
       // 7) COMPLY: Compliance via ChittyCheck
       console.log(`✅ Checking compliance via ChittyCheck...`);
@@ -234,13 +240,12 @@ class EvidenceIngestionPipeline {
         },
       );
 
-      const compliance = complianceResponse.ok
-        ? await complianceResponse.json()
-        : {
-            status: "offline",
-            score: 0.8,
-            message: "ChittyCheck service unavailable",
-          };
+      if (!complianceResponse.ok) {
+        throw new Error(
+          `§36 Violation: ChittyCheck service required - ${await complianceResponse.text()}`,
+        );
+      }
+      const compliance = await complianceResponse.json();
 
       // 8) STORE: Canonical record via ChittySchema
       console.log(`💾 Storing canonical record...`);
@@ -259,10 +264,9 @@ class EvidenceIngestionPipeline {
       });
 
       if (!storeResponse.ok) {
-        console.warn(
-          `⚠️  Storage service unavailable: ${await storeResponse.text()}`,
+        throw new Error(
+          `§36 Violation: ChittySchema service required - ${await storeResponse.text()}`,
         );
-        // Continue - data is still validated and can be stored locally as fallback
       }
 
       console.log(`🎉 Evidence ingestion complete!`);
