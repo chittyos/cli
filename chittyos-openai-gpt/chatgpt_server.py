@@ -36,7 +36,7 @@ app = FastAPI(
 # CORS configuration for ChatGPT
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://chat.openai.com"],
+    allow_origins=["https://chat.chitty.cc"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

@@ -37,7 +37,7 @@ app = FastAPI(
 # CORS configuration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://chat.openai.com", "https://claude.ai"],
+    allow_origins=["https://chat.chitty.cc", "https://claude.ai"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
