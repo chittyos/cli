@@ -162,10 +162,24 @@ class DeploymentRequest(BaseModel):
 # ============= CHITTYOS FUNCTIONS =============
 
 async def generate_chitty_id(prefix: str = "CHITTY") -> str:
-    """Generate a ChittyID"""
-    timestamp = datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')
-    random_part = os.urandom(4).hex().upper()
-    return f"{prefix}-{timestamp}-{random_part}"
+    """Generate a ChittyID via service - §36 compliant"""
+    chitty_id_service = os.getenv("CHITTY_ID_SERVICE", "https://id.chitty.cc")
+    chitty_token = os.getenv("CHITTY_ID_TOKEN")
+
+    if not chitty_token:
+        raise HTTPException(status_code=500, detail="§36 Violation: CHITTY_ID_TOKEN required")
+
+    async with httpx.AsyncClient() as client:
+        response = await client.post(
+            f"{chitty_id_service}/generate",
+            json={"prefix": prefix},
+            headers={"Authorization": f"Bearer {chitty_token}"}
+        )
+
+        if response.status_code != 200:
+            raise HTTPException(status_code=500, detail="ChittyID service unavailable")
+
+        return response.json()["chitty_id"]
 
 async def create_event_entry(event_type: str, aggregate_id: str, aggregate_type: str, 
                            event_data: Dict, user_id: Optional[str] = None) -> str:

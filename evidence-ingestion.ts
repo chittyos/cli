@@ -49,12 +49,34 @@ class EvidenceIngestionPipeline {
   private config: ServiceConfig;
 
   constructor() {
+    // §36 Compliance: Strict service dependency - no fallback values
+    if (!process.env.CHITTY_ID_TOKEN) {
+      throw new Error(
+        "§36 Violation: CHITTY_ID_TOKEN required - no local generation allowed",
+      );
+    }
+    if (!process.env.CHITTY_VERIFY_TOKEN) {
+      throw new Error(
+        "§36 Violation: CHITTY_VERIFY_TOKEN required - service dependency mandatory",
+      );
+    }
+    if (!process.env.CHITTY_CHECK_TOKEN) {
+      throw new Error(
+        "§36 Violation: CHITTY_CHECK_TOKEN required - service dependency mandatory",
+      );
+    }
+    if (!process.env.CHITTY_REGISTRY_TOKEN) {
+      throw new Error(
+        "§36 Violation: CHITTY_REGISTRY_TOKEN required - service dependency mandatory",
+      );
+    }
+
     this.config = {
       REGISTRY_URL: process.env.REGISTRY_URL || "https://registry.chitty.cc",
-      CHITTY_ID_TOKEN: process.env.CHITTY_ID_TOKEN || "",
-      CHITTY_VERIFY_TOKEN: process.env.CHITTY_VERIFY_TOKEN || "",
-      CHITTY_CHECK_TOKEN: process.env.CHITTY_CHECK_TOKEN || "",
-      CHITTY_REGISTRY_TOKEN: process.env.CHITTY_REGISTRY_TOKEN || "",
+      CHITTY_ID_TOKEN: process.env.CHITTY_ID_TOKEN,
+      CHITTY_VERIFY_TOKEN: process.env.CHITTY_VERIFY_TOKEN,
+      CHITTY_CHECK_TOKEN: process.env.CHITTY_CHECK_TOKEN,
+      CHITTY_REGISTRY_TOKEN: process.env.CHITTY_REGISTRY_TOKEN,
       PGPASSWORD: process.env.PGPASSWORD || "",
       ARIAS_DB_URL: process.env.ARIAS_DB_URL || "",
       DATABASE_URL:

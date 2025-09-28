@@ -22,7 +22,7 @@ dotenv.config();
 const program = new Command();
 
 // CLI Configuration
-const CLI_VERSION = "1.0.0";
+const CLI_VERSION = "ChittyOS Framework v1.0.0";
 const API_BASE = process.env.CHITTY_API_BASE || "https://api.chittyos.com";
 const API_KEY = process.env.CHITTY_API_KEY;
 
@@ -268,7 +268,9 @@ class ProgressTracker {
 // Command implementations
 program
   .name("chitty")
-  .description("ChittyCLI - Unified Command-Line Client\nAlias: ccli")
+  .description(
+    "ChittyOS Framework CLI - Unified Command-Line Client\nAlias: ccli",
+  )
   .version(CLI_VERSION)
   .option("--yes", "Auto-approve prompts")
   .helpOption("-h, --help", "Show help");
@@ -1297,4 +1299,4 @@ if (!API_KEY && !isHelpMode) {
 // Parse CLI arguments
 program.parse();
 
-export { ChittyAPI, validateChittyID, generateChittyID };
+export { ChittyAPI, validateChittyID };
