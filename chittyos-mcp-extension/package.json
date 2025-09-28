@@ -1,0 +1,39 @@
+{
+  "name": "chittyos-mcp-desktop",
+  "version": "1.0.1",
+  "description": "ChittyOS MCP Desktop Extension for Claude",
+  "main": "chittymcp.js",
+  "scripts": {
+    "start": "node chittymcp.js",
+    "test": "node test-server.js",
+    "build": "mcpb pack",
+    "init-manifest": "mcpb init",
+    "validate": "mcpb validate manifest.json"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4",
+    "axios": "^1.7.9",
+    "dotenv": "^16.4.5"
+  },
+  "devDependencies": {
+    "@anthropic-ai/mcpb": "^1.1.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "mcp",
+    "claude",
+    "chittyos",
+    "legal",
+    "chittyid",
+    "compliance",
+    "§36"
+  ],
+  "author": "ChittyOS Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/chittyos/cli"
+  }
+}

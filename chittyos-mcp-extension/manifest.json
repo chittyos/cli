@@ -1,0 +1,74 @@
+{
+  "manifest_version": "0.2",
+  "name": "ChittyOS Framework",
+  "version": "1.0.1",
+  "description": "Enterprise-grade legal and business infrastructure with §36 compliance, ChittyID generation, and comprehensive MCP tools",
+  "author": {
+    "name": "ChittyOS Team",
+    "email": "support@chitty.cc"
+  },
+  "license": "MIT",
+  "homepage": "https://chitty.cc",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/chittyos/cli"
+  },
+
+  "server": {
+    "type": "node",
+    "entry_point": "chittymcp.js",
+    "mcp_config": {
+      "command": "node",
+      "args": ["chittymcp.js"]
+    }
+  },
+
+  "tools": [
+    {
+      "name": "generate_chitty_id",
+      "description": "Generate a unique ChittyID for any entity"
+    },
+    {
+      "name": "create_legal_case",
+      "description": "Create a new legal case with full audit trail"
+    },
+    {
+      "name": "analyze_document",
+      "description": "Analyze legal documents for compliance and insights"
+    },
+    {
+      "name": "process_payment",
+      "description": "Process financial transactions with ChittyID tracking"
+    },
+    {
+      "name": "compliance_check",
+      "description": "Run §36 compliance validation on code or documents"
+    },
+    {
+      "name": "search_cases",
+      "description": "Search legal cases with advanced filters"
+    },
+    {
+      "name": "execute_workflow",
+      "description": "Execute predefined legal workflows"
+    }
+  ],
+
+  "prompts": [
+    {
+      "name": "legal_intake",
+      "description": "Start a new client intake process",
+      "text": "I need to create a new legal matter. The client is {{client_name}} and the matter involves {{matter_description}}. Please set up the case with all necessary documentation and compliance checks."
+    },
+    {
+      "name": "compliance_audit",
+      "description": "Run a comprehensive compliance audit",
+      "text": "Please run a full §36 compliance audit on {{target_path}} and generate a detailed report with any violations and recommended fixes."
+    },
+    {
+      "name": "document_analysis",
+      "description": "Analyze legal documents",
+      "text": "Analyze the document at {{document_path}} for {{analysis_type}} and provide actionable insights."
+    }
+  ]
+}
