@@ -4,14 +4,17 @@ on:
   push:
     tags:
       - 'mcp-v*'
-    paths:
-      - 'chittyos-mcp-extension/**'
   workflow_dispatch:
     inputs:
       version:
         description: 'Version to release (e.g., 1.0.2)'
         required: true
         type: string
+
+permissions:
+  contents: write
+  packages: write
+  actions: read
 
 jobs:
   build-and-release:
@@ -63,7 +66,7 @@ jobs:
           md5sum chittyos-mcp-extension.mcpb > chittyos-mcp-extension.mcpb.md5
 
       - name: Create release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           files: |
             chittyos-mcp-extension/chittyos-mcp-extension.mcpb
@@ -95,159 +98,38 @@ jobs:
             - Service-only ID generation (no local fallback)
           draft: false
           prerelease: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-  publish-to-registry:
-    runs-on: ubuntu-latest
-    needs: build-and-release
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+  # Optional jobs that require additional secrets
+  # Uncomment and configure as needed
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          registry-url: 'https://registry.npmjs.org'
-
-      - name: Install dependencies
-        working-directory: chittyos-mcp-extension
-        run: npm ci
-
-      - name: Build package
-        working-directory: chittyos-mcp-extension
-        run: npm install -g @anthropic-ai/mcpb && mcpb pack
-
-      - name: Upload to ChittyOS Registry
-        env:
-          CHITTY_API_KEY: ${{ secrets.CHITTY_API_KEY }}
-        run: |
-          curl -X POST https://registry.chitty.cc/api/extensions \
-            -H "Authorization: Bearer ${CHITTY_API_KEY}" \
-            -H "Content-Type: multipart/form-data" \
-            -F "extension=@chittyos-mcp-extension/chittyos-mcp-extension.mcpb" \
-            -F "version=${{ github.event.inputs.version || '1.0.1' }}" \
-            -F "metadata={\"name\":\"chittyos-mcp\",\"type\":\"desktop-extension\"}"
-
-  docker-build:
-    runs-on: ubuntu-latest
-    needs: build-and-release
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Login to DockerHub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v5
-        with:
-          context: chittyos-mcp-extension
-          file: chittyos-mcp-extension/Dockerfile
-          push: true
-          tags: |
-            ghcr.io/chittyos/mcp-extension:latest
-            ghcr.io/chittyos/mcp-extension:${{ github.event.inputs.version || '1.0.1' }}
-            chittyos/mcp-extension:latest
-            chittyos/mcp-extension:${{ github.event.inputs.version || '1.0.1' }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-  deploy-to-cdn:
-    runs-on: ubuntu-latest
-    needs: build-and-release
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Install dependencies and build
-        working-directory: chittyos-mcp-extension
-        run: |
-          npm ci
-          npm install -g @anthropic-ai/mcpb
-          mcpb pack
-
-      - name: Deploy to Cloudflare R2
-        env:
-          R2_ACCESS_KEY: ${{ secrets.R2_ACCESS_KEY }}
-          R2_SECRET_KEY: ${{ secrets.R2_SECRET_KEY }}
-        run: |
-          # Install AWS CLI
-          pip install awscli
-
-          # Configure AWS CLI for R2
-          aws configure set aws_access_key_id ${R2_ACCESS_KEY}
-          aws configure set aws_secret_access_key ${R2_SECRET_KEY}
-          aws configure set region auto
-
-          # Upload to R2
-          aws s3 cp chittyos-mcp-extension/chittyos-mcp-extension.mcpb \
-            s3://chittyos-extensions/mcp/chittyos-mcp-extension-${{ github.event.inputs.version || '1.0.1' }}.mcpb \
-            --endpoint-url https://r2.cloudflarestorage.com
-
-          aws s3 cp chittyos-mcp-extension/chittyos-mcp-extension.mcpb \
-            s3://chittyos-extensions/mcp/chittyos-mcp-extension-latest.mcpb \
-            --endpoint-url https://r2.cloudflarestorage.com
-
-      - name: Purge CDN cache
-        env:
-          CLOUDFLARE_TOKEN: ${{ secrets.CLOUDFLARE_TOKEN }}
-        run: |
-          curl -X POST "https://api.cloudflare.com/client/v4/zones/${{ secrets.CLOUDFLARE_ZONE_ID }}/purge_cache" \
-            -H "Authorization: Bearer ${CLOUDFLARE_TOKEN}" \
-            -H "Content-Type: application/json" \
-            --data '{"files":["https://cdn.chitty.cc/extensions/mcp/chittyos-mcp-extension-latest.mcpb"]}'
+  # publish-to-registry:
+  #   runs-on: ubuntu-latest
+  #   needs: build-and-release
+  #   if: ${{ secrets.CHITTY_API_KEY }}
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v4
+  #     - name: Upload to ChittyOS Registry
+  #       env:
+  #         CHITTY_API_KEY: ${{ secrets.CHITTY_API_KEY }}
+  #       run: |
+  #         curl -X POST https://registry.chitty.cc/api/extensions \
+  #           -H "Authorization: Bearer ${CHITTY_API_KEY}" \
+  #           -F "extension=@chittyos-mcp-extension/chittyos-mcp-extension.mcpb"
 
   notify-release:
     runs-on: ubuntu-latest
-    needs: [build-and-release, publish-to-registry, docker-build, deploy-to-cdn]
+    needs: [build-and-release]
     if: always()
     steps:
-      - name: Send notification
-        env:
-          WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+      - name: Release notification
         run: |
-          VERSION="${{ github.event.inputs.version || '1.0.1' }}"
+          VERSION="${{ github.event.inputs.version || github.ref_name }}"
           STATUS="${{ needs.build-and-release.result }}"
 
           if [ "$STATUS" = "success" ]; then
-            MESSAGE="✅ ChittyOS MCP Extension v${VERSION} successfully released!"
-            COLOR="good"
+            echo "✅ ChittyOS MCP Extension ${VERSION} released successfully!"
           else
-            MESSAGE="❌ ChittyOS MCP Extension v${VERSION} release failed"
-            COLOR="danger"
+            echo "❌ ChittyOS MCP Extension ${VERSION} release failed"
           fi
-
-          curl -X POST $WEBHOOK_URL \
-            -H 'Content-Type: application/json' \
-            -d "{
-              \"attachments\": [{
-                \"color\": \"${COLOR}\",
-                \"title\": \"MCP Extension Release\",
-                \"text\": \"${MESSAGE}\",
-                \"fields\": [
-                  {\"title\": \"Version\", \"value\": \"${VERSION}\", \"short\": true},
-                  {\"title\": \"Repository\", \"value\": \"chittyos/cli\", \"short\": true},
-                  {\"title\": \"Download\", \"value\": \"https://cdn.chitty.cc/extensions/mcp/chittyos-mcp-extension-${VERSION}.mcpb\"}
-                ]
-              }]
-            }"
