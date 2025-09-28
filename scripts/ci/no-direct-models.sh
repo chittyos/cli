@@ -15,7 +15,7 @@ FORBIDDEN_PATTERNS=(
     "anthropic\.com"
     "api\.anthropic\.com"
     "claude\.ai/api"
-    "sk-[a-zA-Z0-9]+"
+    "sk-[a-zA-Z0-9]{20,}"  # Real API keys are longer
     "claude-[0-9]+-[a-zA-Z]+-[0-9]+"
     "gpt-[34]"
     "text-davinci"
@@ -39,17 +39,22 @@ VIOLATIONS=0
 # Use ripgrep if available (faster), otherwise grep
 if command -v rg >/dev/null 2>&1; then
     for pattern in "${FORBIDDEN_PATTERNS[@]}"; do
-        # Exclude test files, configs, documentation, and swagger specs
-        if rg -q "$pattern" --type js --type ts --type py \
-           --glob '!*test*' --glob '!*spec*' --glob '!*config*' \
-           --glob '!*middleware*' --glob '!*.md' --glob '!*swagger*' . 2>/dev/null; then
+        # Only exclude node_modules and .git
+        matches=$(rg "$pattern" --type js --type ts --type py --glob '!node_modules' --glob '!.git' . 2>/dev/null || true)
+        if [ -n "$matches" ]; then
             echo "❌ Found direct AI provider pattern: $pattern"
+            echo "$matches" | head -3
             VIOLATIONS=$((VIOLATIONS + 1))
         fi
     done
 else
-    # Simple pass for basic setups
-    echo "✅ CI guard check passed (basic mode)"
+    # Fallback to grep
+    for pattern in "${FORBIDDEN_PATTERNS[@]}"; do
+        if grep -r "$pattern" --include="*.js" --include="*.ts" --include="*.py" --exclude-dir=node_modules --exclude-dir=.git . 2>/dev/null | head -1 | grep -q .; then
+            echo "❌ Found direct AI provider pattern: $pattern"
+            VIOLATIONS=$((VIOLATIONS + 1))
+        fi
+    done
 fi
 
 if [ $VIOLATIONS -eq 0 ]; then

@@ -1,0 +1,31 @@
+{
+  "mcpServers": {
+    "chittyos-cloudflare": {
+      "command": "python",
+      "args": ["/Users/nb/.claude/tools/chittyos-cloudflare-mcp/server.py"],
+      "env": {
+        "CLOUDFLARE_API_TOKEN": "YOUR_API_TOKEN_HERE",
+        "CLOUDFLARE_ACCOUNT_ID": "YOUR_ACCOUNT_ID_HERE",
+        "CHITTY_CASE_DB_URL": "https://cases.chitty.cc/api",
+        "CHITTY_CHAIN_RPC": "https://chain.chitty.cc/rpc",
+        "CHITTY_VERIFY_ENDPOINT": "https://verify.chitty.cc/api",
+        "CHITTY_TRUST_API": "https://trust.chitty.cc/api"
+      },
+      "metadata": {
+        "name": "ChittyOS Cloudflare Infrastructure",
+        "description": "AI-driven legal tech infrastructure management",
+        "version": "1.0.0",
+        "author": "ChittyOS",
+        "features": [
+          "Worker deployment with case tracking",
+          "R2 bucket management",
+          "D1 database operations",
+          "KV namespace control",
+          "ChittyChain blockchain anchoring",
+          "ChittyVerify compliance checks",
+          "ChittyTrust reputation scoring"
+        ]
+      }
+    }
+  }
+}

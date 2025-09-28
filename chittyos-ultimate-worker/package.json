@@ -1,0 +1,27 @@
+{
+  "name": "chittyos-ultimate-worker",
+  "version": "1.0.0",
+  "description": "ChittyOS Ultimate Worker - Central orchestrator for all 73 domains",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "build": "tsc && node build.js",
+    "test": "vitest",
+    "tail": "wrangler tail",
+    "mcp:start": "node dist/mcp-server.js"
+  },
+  "dependencies": {
+    "@cloudflare/workers-types": "^4.20240925.0",
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "hono": "^3.11.0",
+    "zod": "^3.22.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0",
+    "vitest": "^1.0.0",
+    "wrangler": "^3.0.0"
+  }
+}

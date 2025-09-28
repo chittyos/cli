@@ -1,62 +1,67 @@
-import swaggerJsdoc from 'swagger-jsdoc';
-import swaggerUi from 'swagger-ui-express';
-import { Express } from 'express';
+import swaggerJsdoc from "swagger-jsdoc";
+import swaggerUi from "swagger-ui-express";
+import { Express } from "express";
 
 const options: swaggerJsdoc.Options = {
   definition: {
-    openapi: '3.0.0',
+    openapi: "3.0.0",
     info: {
-      title: 'ChittyChat API',
-      version: '1.0.0',
-      description: 'AI-powered document intake and processing system with 1Password integration',
+      title: "ChittyChat API",
+      version: "1.0.0",
+      description:
+        "AI-powered document intake and processing system with 1Password integration",
       contact: {
-        name: 'ChittyChat Support',
-        email: 'support@chittychat.com'
+        name: "ChittyChat Support",
+        email: "support@chittychat.com",
       },
       license: {
-        name: 'MIT',
-        url: 'https://opensource.org/licenses/MIT'
-      }
+        name: "MIT",
+        url: "https://opensource.org/licenses/MIT",
+      },
     },
     servers: [
       {
-        url: 'http://localhost:3000',
-        description: 'Development server'
+        url: "http://localhost:3000",
+        description: "Development server",
       },
       {
-        url: 'https://api.chittychat.com',
-        description: 'Production server'
-      }
+        url: "https://api.chittychat.com",
+        description: "Production server",
+      },
     ],
     components: {
       securitySchemes: {
         bearerAuth: {
-          type: 'http',
-          scheme: 'bearer',
-          bearerFormat: 'JWT'
+          type: "http",
+          scheme: "bearer",
+          bearerFormat: "JWT",
         },
         apiKey: {
-          type: 'apiKey',
-          in: 'header',
-          name: 'X-API-Key'
-        }
-      }
-    }
+          type: "apiKey",
+          in: "header",
+          name: "X-API-Key",
+        },
+      },
+    },
   },
-  apis: ['./src/routes/*.ts', './src/models/*.ts']
+  apis: ["./src/routes/*.ts", "./src/models/*.ts"],
 };
 
 const swaggerSpec = swaggerJsdoc(options);
 
 export const setupSwagger = (app: Express) => {
-  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
-    customCss: '.swagger-ui .topbar { display: none }',
-    customSiteTitle: 'ChittyChat API Documentation'
-  }));
-  
+  app.use(
+    "/api-docs",
+    swaggerUi.serve,
+    swaggerUi.setup(swaggerSpec, {
+      customCss: ".swagger-ui .topbar { display: none }",
+      customSiteTitle: "ChittyChat API Documentation",
+    }),
+  );
+
   // Serve OpenAPI spec as JSON
-  app.get('/api-docs.json', (req, res) => {
-    res.setHeader('Content-Type', 'application/json');
+  app.get("/api-docs.json", (req, res) => {
+    res.setHeader("Content-Type", "application/json");
     res.send(swaggerSpec);
   });
 };
@@ -89,7 +94,7 @@ export const setupSwagger = (app: Express) => {
  *         updatedAt:
  *           type: string
  *           format: date-time
- *     
+ *
  *     Document:
  *       type: object
  *       properties:
@@ -114,7 +119,7 @@ export const setupSwagger = (app: Express) => {
  *             type: string
  *         aiAnalysis:
  *           $ref: '#/components/schemas/AIAnalysis'
- *     
+ *
  *     AIAnalysis:
  *       type: object
  *       properties:
@@ -136,7 +141,7 @@ export const setupSwagger = (app: Express) => {
  *           type: number
  *           minimum: 0
  *           maximum: 1
- *     
+ *
  *     Error:
  *       type: object
  *       properties:
@@ -298,8 +303,8 @@ export const setupSwagger = (app: Express) => {
  *                 default: all
  *               model:
  *                 type: string
- *                 enum: [gpt-4, gpt-3.5-turbo]
- *                 default: gpt-4
+ *                 enum: [chitty-advanced, chitty-standard]
+ *                 default: chitty-advanced
  *     responses:
  *       200:
  *         description: Analysis complete

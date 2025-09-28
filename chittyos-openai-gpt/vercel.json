@@ -1,0 +1,54 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "api/main.py",
+      "use": "@vercel/python",
+      "config": {
+        "maxLambdaSize": "15mb"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "api/main.py"
+    }
+  ],
+  "env": {
+    "NEON_DATABASE_URL": "@neon_database_url",
+    "CHITTY_API_KEY": "@chitty_api_key",
+    "CLOUDFLARE_API_TOKEN": "@cloudflare_api_token",
+    "CLOUDFLARE_ACCOUNT_ID": "@cloudflare_account_id",
+    "CHITTY_CASE_DB_URL": "@chitty_case_db_url",
+    "CHITTY_CHAIN_RPC": "@chitty_chain_rpc",
+    "CHITTY_VERIFY_ENDPOINT": "@chitty_verify_endpoint",
+    "CHITTY_TRUST_API": "@chitty_trust_api"
+  },
+  "functions": {
+    "api/main.py": {
+      "memory": 1024,
+      "maxDuration": 10
+    }
+  },
+  "regions": ["iad1"],
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "https://chat.openai.com"
+        },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET, POST, PUT, DELETE, OPTIONS"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "Authorization, Content-Type"
+        }
+      ]
+    }
+  ]
+}
