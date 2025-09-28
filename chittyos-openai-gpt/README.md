@@ -1,15 +1,15 @@
-# ChittyOS ChatGPT Integration
+# ChittyOS OpenAI MCP Integration
 
-🏛️ AI-driven legal tech infrastructure for ChatGPT with Neon database integration
+🏛️ Native MCP connection to ChittyOS infrastructure using OpenAI's Responses API
 
 ## Features
 
-- ✅ **Full Neon Database Integration** - Uses existing ChittyOS schema at schema.chitty.cc
-- 🚀 **Vercel Deployment** - Serverless API with automatic scaling
-- 🤖 **Custom GPT Actions** - OpenAPI-compliant endpoints for ChatGPT
-- 🔒 **Secure Authentication** - API key-based security
-- 📊 **Event Sourcing** - Complete audit trail in event_store table
-- ⛓️ **Blockchain Ready** - Prepared for ChittyChain integration
+- 🔌 **Native MCP Protocol** - Direct integration with OpenAI's Responses API
+- 🌐 **Remote MCP Server** - Connects to ChittyMCP at mcp.chitty.cc
+- 🚀 **No Custom GPT Required** - Uses OpenAI's built-in MCP support
+- 🔒 **Secure Authentication** - Bearer token authentication via ChittyAPI
+- 📊 **Full Tool Access** - Complete ChittyOS service catalog
+- ⛓️ **Blockchain Integration** - Native ChittyChain and ChittyID support
 
 ## Database Integration
 
