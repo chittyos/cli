@@ -1,0 +1,341 @@
+{
+  "id": "chittyos-mcp-extension",
+  "name": "ChittyOS Framework",
+  "version": "1.0.1",
+  "category": "business",
+  "subcategory": "legal",
+  "author": {
+    "name": "ChittyOS Team",
+    "email": "support@chitty.cc",
+    "url": "https://chitty.cc",
+    "verified": true
+  },
+  "description": {
+    "short": "Enterprise-grade legal and business infrastructure with §36 compliance for Claude Desktop",
+    "long": "ChittyOS MCP Extension brings professional-grade legal and business tools directly to Claude Desktop. Built with enterprise security and §36 compliance in mind, it provides comprehensive case management, document analysis, payment processing, and workflow automation capabilities.\n\nKey features include service-based ChittyID generation for unique entity tracking, automated compliance checking, legal document analysis, secure payment processing, and predefined workflow templates for common legal operations.\n\nPerfect for law firms, corporate legal departments, compliance teams, and business professionals who need reliable, auditable, and compliant business operations integrated with AI assistance."
+  },
+  "pricing": {
+    "model": "freemium",
+    "tiers": [
+      {
+        "name": "Community",
+        "price": 0,
+        "currency": "USD",
+        "period": "month",
+        "limits": {
+          "requests_per_month": 1000,
+          "chitty_ids_per_month": 100,
+          "cases_per_month": 10,
+          "storage_gb": 1
+        },
+        "features": [
+          "Basic ChittyID generation",
+          "Case creation and management",
+          "Document analysis (up to 10MB)",
+          "Basic compliance checks",
+          "Community support"
+        ]
+      },
+      {
+        "name": "Professional",
+        "price": 29,
+        "currency": "USD",
+        "period": "month",
+        "limits": {
+          "requests_per_month": 10000,
+          "chitty_ids_per_month": 1000,
+          "cases_per_month": 100,
+          "storage_gb": 10
+        },
+        "features": [
+          "All Community features",
+          "Advanced document analysis",
+          "Payment processing",
+          "Workflow automation",
+          "Priority support",
+          "API access",
+          "Audit trails"
+        ]
+      },
+      {
+        "name": "Enterprise",
+        "price": null,
+        "currency": "USD",
+        "period": "month",
+        "contact_sales": true,
+        "limits": {
+          "requests_per_month": "unlimited",
+          "chitty_ids_per_month": "unlimited",
+          "cases_per_month": "unlimited",
+          "storage_gb": "unlimited"
+        },
+        "features": [
+          "All Professional features",
+          "Unlimited usage",
+          "Custom integrations",
+          "On-premise deployment",
+          "24/7 support",
+          "SLA guarantees",
+          "Custom compliance frameworks",
+          "Advanced analytics"
+        ]
+      }
+    ]
+  },
+  "features": [
+    {
+      "name": "ChittyID Generation",
+      "description": "Generate unique, service-based identifiers for all entities",
+      "icon": "🆔"
+    },
+    {
+      "name": "Legal Case Management",
+      "description": "Create, track, and manage legal cases with full audit trails",
+      "icon": "⚖️"
+    },
+    {
+      "name": "Document Analysis",
+      "description": "AI-powered analysis of legal documents for compliance and risk",
+      "icon": "📄"
+    },
+    {
+      "name": "Payment Processing",
+      "description": "Secure financial transaction processing with tracking",
+      "icon": "💳"
+    },
+    {
+      "name": "Compliance Checking",
+      "description": "§36 Framework compliance validation and reporting",
+      "icon": "✅"
+    },
+    {
+      "name": "Case Search",
+      "description": "Advanced search and filtering across all legal cases",
+      "icon": "🔍"
+    },
+    {
+      "name": "Workflow Automation",
+      "description": "Predefined workflows for intake, discovery, filing, and billing",
+      "icon": "🔄"
+    }
+  ],
+  "screenshots": [
+    {
+      "url": "https://cdn.chitty.cc/screenshots/extension-overview.png",
+      "caption": "ChittyOS Extension Overview in Claude Desktop",
+      "alt": "Main interface showing available tools and status"
+    },
+    {
+      "url": "https://cdn.chitty.cc/screenshots/case-creation.png",
+      "caption": "Creating a new legal case with ChittyID",
+      "alt": "Case creation dialog with form fields and validation"
+    },
+    {
+      "url": "https://cdn.chitty.cc/screenshots/document-analysis.png",
+      "caption": "Document analysis results showing compliance insights",
+      "alt": "Analysis results with risk assessment and recommendations"
+    },
+    {
+      "url": "https://cdn.chitty.cc/screenshots/workflow-execution.png",
+      "caption": "Executing legal workflow automation",
+      "alt": "Workflow interface showing progress and next steps"
+    }
+  ],
+  "requirements": {
+    "claude_version": ">=2.0.0",
+    "node_version": ">=18.0.0",
+    "platforms": ["darwin", "linux", "win32"],
+    "memory_mb": 256,
+    "storage_mb": 50
+  },
+  "permissions": [
+    {
+      "name": "filesystem.read",
+      "description": "Read access to analyze documents and check compliance",
+      "required": true
+    },
+    {
+      "name": "filesystem.write",
+      "description": "Write access to save reports and cache data",
+      "required": false
+    },
+    {
+      "name": "network.fetch",
+      "description": "Network access to connect to ChittyID service and APIs",
+      "required": true
+    }
+  ],
+  "configuration": [
+    {
+      "key": "chitty_id_token",
+      "name": "ChittyID Token",
+      "description": "Authentication token for ChittyID service",
+      "type": "string",
+      "required": true,
+      "secure": true,
+      "validation": "^chitty-[a-z0-9-]+$"
+    },
+    {
+      "key": "environment",
+      "name": "Environment",
+      "description": "Deployment environment (production, staging, development)",
+      "type": "select",
+      "required": false,
+      "default": "production",
+      "options": [
+        { "value": "production", "label": "Production" },
+        { "value": "staging", "label": "Staging" },
+        { "value": "development", "label": "Development" }
+      ]
+    },
+    {
+      "key": "auto_update",
+      "name": "Auto-Update",
+      "description": "Automatically update to new versions",
+      "type": "boolean",
+      "required": false,
+      "default": true
+    }
+  ],
+  "installation": {
+    "size_mb": 4.2,
+    "download_url": "https://github.com/chittyos/cli/releases/latest/download/chittyos-mcp-extension.mcpb",
+    "checksum_url": "https://github.com/chittyos/cli/releases/latest/download/chittyos-mcp-extension.mcpb.sha256",
+    "installation_guide": "https://docs.chitty.cc/extension/installation"
+  },
+  "support": {
+    "documentation": "https://docs.chitty.cc/extension",
+    "api_reference": "https://docs.chitty.cc/api",
+    "community": "https://github.com/chittyos/cli/discussions",
+    "issues": "https://github.com/chittyos/cli/issues",
+    "email": "support@chitty.cc",
+    "response_time": {
+      "community": "best effort",
+      "professional": "24 hours",
+      "enterprise": "4 hours"
+    }
+  },
+  "compliance": {
+    "frameworks": [
+      {
+        "name": "§36 Framework",
+        "version": "1.0",
+        "status": "compliant",
+        "certification_url": "https://compliance.chitty.cc/section36"
+      },
+      {
+        "name": "SOC 2 Type II",
+        "status": "certified",
+        "certification_url": "https://compliance.chitty.cc/soc2"
+      },
+      {
+        "name": "GDPR",
+        "status": "compliant",
+        "privacy_policy": "https://chitty.cc/privacy"
+      }
+    ],
+    "security": {
+      "encryption_at_rest": true,
+      "encryption_in_transit": true,
+      "audit_logging": true,
+      "access_controls": true,
+      "vulnerability_scanning": true,
+      "penetration_testing": "quarterly"
+    }
+  },
+  "analytics": {
+    "downloads": 1247,
+    "active_installations": 892,
+    "rating": 4.8,
+    "reviews": 156,
+    "growth_rate": "15%"
+  },
+  "tags": [
+    "legal",
+    "business",
+    "compliance",
+    "case-management",
+    "document-analysis",
+    "payment-processing",
+    "workflow-automation",
+    "enterprise",
+    "security",
+    "audit",
+    "chittyid",
+    "§36"
+  ],
+  "integrations": [
+    {
+      "name": "ChittyID Service",
+      "type": "required",
+      "url": "https://id.chitty.cc"
+    },
+    {
+      "name": "Cloudflare R2",
+      "type": "optional",
+      "description": "Document storage and CDN"
+    },
+    {
+      "name": "Neon Database",
+      "type": "optional",
+      "description": "PostgreSQL database for case data"
+    },
+    {
+      "name": "GitHub",
+      "type": "integration",
+      "description": "Source code and releases"
+    }
+  ],
+  "changelog": [
+    {
+      "version": "1.0.1",
+      "date": "2025-09-28",
+      "changes": [
+        "Initial release with 7 core tools",
+        "§36 compliance framework implementation",
+        "Service-based ChittyID generation",
+        "Docker containerization support",
+        "Comprehensive testing pipeline",
+        "Auto-update mechanism",
+        "Developer SDK"
+      ]
+    }
+  ],
+  "roadmap": [
+    {
+      "version": "1.1.0",
+      "estimated_date": "2025-11-01",
+      "features": [
+        "Email integration tools",
+        "Calendar management",
+        "Document generation",
+        "Batch processing support",
+        "Enhanced analytics dashboard"
+      ]
+    },
+    {
+      "version": "1.2.0",
+      "estimated_date": "2025-12-15",
+      "features": [
+        "Multi-language support",
+        "Custom workflow builder",
+        "Advanced reporting",
+        "Mobile companion app",
+        "Third-party integrations"
+      ]
+    }
+  ],
+  "metadata": {
+    "created_at": "2025-09-28T00:00:00Z",
+    "updated_at": "2025-09-28T00:00:00Z",
+    "featured": false,
+    "editor_choice": false,
+    "trending": true,
+    "status": "active",
+    "review_status": "approved",
+    "license": "MIT",
+    "repository": "https://github.com/chittyos/cli",
+    "homepage": "https://chitty.cc",
+    "demo_url": "https://demo.chitty.cc/extension"
+  }
+}
