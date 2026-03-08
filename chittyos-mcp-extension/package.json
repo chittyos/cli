@@ -11,8 +11,8 @@
     "validate": "mcpb validate manifest.json"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.0.4",
-    "axios": "^1.7.9",
+    "@modelcontextprotocol/sdk": "^1.26.0",
+    "axios": "^1.13.5",
     "dotenv": "^16.4.5"
   },
   "devDependencies": {
